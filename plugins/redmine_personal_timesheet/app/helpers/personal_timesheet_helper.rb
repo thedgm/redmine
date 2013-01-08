@@ -156,7 +156,7 @@ entries_for_date
   end
 
   def color_for_report(elem, user)
-     current_hours = number_with_precision(get_hours_per_day(elem, user), @precision).to_i
+     current_hours = number_with_precision(get_hours_per_day(elem, user),  :Precision => @precision).to_i
     color = ""
     if 0 < current_hours && current_hours < 8
       color = "#FDBF3B"

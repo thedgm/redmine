@@ -13,7 +13,7 @@ class PersonalTimesheetController < ApplicationController
 
 
   def index
-	@from = Date.new(Date.today.year, Date.today.month, 1).to_s
+    @from = Date.new(Date.today.year, Date.today.month, 1).to_s
     @to = Date.today.to_s
     @requested_user = User.current
     PersonalTimesheet.const_set("MYREQUESTEDUSER", @requested_user.id)
@@ -120,7 +120,8 @@ class PersonalTimesheetController < ApplicationController
   end
 
   def get_activities
-    @activities = Enumeration::get_values('ACTI')
+#    @activities = Enumeration::get_values('ACTI')
+     @activities = TimeEntryActivity.all(:conditions => 'parent_id IS NULL')
   end
 
   def allowed_projects

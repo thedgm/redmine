@@ -27,7 +27,8 @@ class PersonalTimesheet
     unless options[:activities].nil?
       self.activities = options[:activities].collect { |a| a.to_i }
     else
-      self.activities =  Enumeration::get_values('ACTI').collect(&:id)
+#      self.activities =  Enumeration::get_values('ACTI').collect(&:id)
+      self.activities =  TimeEntryActivity.all.collect { |a| a.id.to_i }
     end
 
 
