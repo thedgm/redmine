@@ -1,0 +1,70 @@
+
+<div id="timesheet-form">
+<fieldset>
+<%= form_for :timesheet, :url =>{:action => 'report'} do |f|  %>
+
+<p>
+  <label for="timesheet_date_from"><%= l(:timesheet_date_from_label)%>:</label><br />
+  <%= f.text_field "date_from", :size => 10, :value => @from %><%= calendar_for('timesheet_date_from') %><br /><br />
+
+  <label for="timesheet_date_to"><%= l(:timesheet_date_to_label)%>:</label><br />
+  <%= f.text_field "date_to", :size => 10, :value => @to %><%= calendar_for('timesheet_date_to') %><br /><br />
+
+  
+</p>
+
+<p>
+  <label for="timesheet[projects][]"><%= l(:timesheet_project_label)%>:</label><br />
+  <label>All</label><%= link_to image_tag('toggle_check.png'), {},
+  :onclick => 'selectAll2("timesheet[projects][]", "selected"); return false;',
+  :title => "#{l(:button_check_all)}", :class => 'toggle-all' %><br/>
+  <%= select_tag 'timesheet[projects][]',
+    options_from_collection_for_select(@timesheet.allowed_projects, :id, :name,
+    @timesheet.projects.collect(&:id)),
+    { :multiple => true, :size => @list_size}%>
+
+</p>
+
+
+<p>
+  <label for="timesheet[activities][]"><%= l(:timesheet_activities_label)%>:</label><br />
+  <label>All</label><%= link_to image_tag('toggle_check.png'), {},
+  :onclick => 'selectAll2("timesheet[activities][]", "selected"); return false;',
+  :title => "#{l(:button_check_all)}", :class => 'toggle-all' %><br/>
+  <%= select_tag 'timesheet[activities][]',
+    options_from_collection_for_select(@activities, :id, :name, @timesheet.activities),
+    { :multiple => true, :size => @list_size}
+  %>
+</p>
+<% options_from_collection_for_select(User.find(:all,
+    :conditions => ['id = ?',@requested_user.id]).sort { |a,b|
+    a.to_s.downcase <=> b.to_s.downcase },
+    :id, :name, @timesheet.users) %>
+<div class="clear"></div>
+<p><%= submit_tag l(:button_apply),:class => 'button-small' -%></p>
+<% check = false
+if params[:weekend]
+  check = true
+end
+
+%>
+
+<p style="margin-left: 40px"><label>Weekends</label><%= check_box_tag 'weekend', 'weekend_days', check, { :class => 'checkbox' } %></p>
+<% end %>
+</fieldset>
+</div>
+<script type="text/javascript">
+  function selectAll2(selectBox,selectAll) {
+    // have we been passed an ID
+    if (typeof selectBox == "string") {
+        selectBox = document.getElementById(selectBox);
+    }
+
+    // is the select box a multiple select box?
+    if (selectBox.type == "select-multiple") {
+        for (var i = 0; i < selectBox.options.length; i++) {
+            selectBox.options[i].selected = selectAll;
+        }
+    }
+}
+</script>
