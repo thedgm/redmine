@@ -19,7 +19,7 @@ RedmineApp::Application.configure do
   # Full error reports are disabled and caching is turned on
   config.action_controller.perform_caching = true
 # Memcached
-  config.cache_store = :mem_cache_store, "localhost"
+  config.cache_store = :mem_cache_store, "10.3.8.5:11211"
 #  config.cache_store = :mem_cache_store, Memcached::Rails.new("localhost:11211")
 
   # Enable serving of images, stylesheets, and javascripts from an asset server
