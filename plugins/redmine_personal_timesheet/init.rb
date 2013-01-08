@@ -11,5 +11,5 @@ Redmine::Plugin.register :redmine_personal_timesheet do
 
   permission :see_project_timesheets, { }, :require => :member
 
-  menu :top_menu, :timesheet, {:controller => 'personal_timesheet', :action => 'index'}, :caption => "Personal"
+  menu :top_menu, :personal_timesheet, {:controller => 'personal_timesheet', :action => 'index'}, :caption => "Personal"
 end
