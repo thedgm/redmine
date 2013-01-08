@@ -1,0 +1,30 @@
+<% date = []
+date = get_entries_per_day_project_act(current_date, by_date.id, 
+  @timesheet.activities, @requested_user).to_a %>
+<% if date.size > 0 %>
+<tr>
+  <td>
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <%= toggle_issue_arrows(by_date.name.to_s.gsub(/ /,'')+current_date.to_s) %>
+       <%= h by_date.name -%>(<%= h number_with_precision(get_hours_per_day_project(
+           current_date, by_date, @requested_user), @precision) %>  <%= h(l(:field_hours)) -%>)
+       <table width="100%" class='<%= cycle("odd", "even") %> issue-time-entry-<%=
+          by_date.name.to_s.gsub(/ /,'')+current_date.to_s %> hascontextmenu' style="display:none;">
+         <thead>
+         <th width="2%"/>
+          
+        <th width="10%"><%= l(:field_hours) %></th>
+          <th width="15%"><%= l(:label_activity) %></th>
+          <th width="20%"><%= l(:label_issue) %></th>
+          <th width="35%"><%= l(:field_comments) %></th>
+          <th align="center"></th>
+        
+  </thead>
+
+<%= render :partial => "by_date2", :collection => date %>
+</table>
+
+  
+  </td>
+  </tr>
+ <% end %>

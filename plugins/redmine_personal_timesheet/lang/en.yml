@@ -1,0 +1,6 @@
+# English strings go here
+my_label: "My label"
+timesheet_date_from_label: "From"
+timesheet_date_to_label: "To"
+timesheet_project_label: "Projects"
+timesheet_activities_label: "Activities"
