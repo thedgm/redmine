@@ -139,7 +139,7 @@ entries_for_date
       toggle_issue_arrow(issue_id, 'toggle-arrow-open.gif', js, true)
   end
 
-  def toggle_issue_arrow(issue_id, image, js, hide)
+  def toggle_issue_arrow(issue_id, image, js, hide=false)
     style = "display:none;" if hide
     style ||= ''
 
@@ -156,7 +156,7 @@ entries_for_date
   end
 
   def color_for_report(elem, user)
-     current_hours = number_with_precision(get_hours_per_day(elem, user),  :Precision => @precision).to_i
+     current_hours = number_with_precision(get_hours_per_day(elem, user),  :precision => @precision).to_i
     color = ""
     if 0 < current_hours && current_hours < 8
       color = "#FDBF3B"

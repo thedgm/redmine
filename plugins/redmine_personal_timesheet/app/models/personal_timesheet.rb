@@ -71,7 +71,7 @@ class PersonalTimesheet
     conditions = ['spent_on >= (?) AND spent_on <= (?) AND activity_id IN (?) AND user_id IN (?)',
                   self.date_from, self.date_to, self.activities, users ]
 
-    Redmine::Hook.call_hook(:plugin_timesheet_model_timesheet_conditions, { :timesheet => self, :conditions => conditions})
+    Redmine::Hook.call_hook(:plugin_personal_timesheet_model_personal_timesheet_conditions, { :timesheet => self, :conditions => conditions})
     return conditions
   end
 

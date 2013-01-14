@@ -1,6 +1,7 @@
 <div class="contextual">
   <%= permalink_to_timesheet(@timesheet) %>
 </div>
+<%= javascript_include_tag 'prototype' %>
 <script type="text/javascript">
 function toggleTimeEntries(id) {
 $$('.issue-time-entry-' + id).each(function(ele) { ele.toggle();} )
@@ -9,13 +10,14 @@ $$('.toggle-' + id).each(function(ele) { ele.toggle();} )
 </script>
 <h2>Personal</h2>
 <%= render :partial => 'form' %>
-<% form_tag({}, { :id => 'time_entries'}) do -%>
+<%= call_hook(:plugin_personal_timesheet_views_personal_timesheets_report_before_time_entries, { :timesheet => @timesheet }) %>
+<%= form_tag({}, { :id => 'time_entries'}) do -%>
 <%  arr = []%>
 
 <% if @timesheet.time_entries.length > 0 %>
 <h2><%= l(:label_spent_time) %> (<%= h(number_with_precision(grand_total(params[:timesheet][:date_from],
       params[:timesheet][:date_to], @requested_user, @timesheet.projects, @timesheet.activities),
-      :Precision => @precision)) -%> <%= h(l(:field_hours)) -%>)</h2>
+      :precision => @precision)) -%> <%= h(l(:field_hours)) -%>)</h2>
 <% @timesheet.time_entries.each do |entryname,entry|
    
   if entry[:logs]
@@ -36,14 +38,14 @@ arr = new_all_time(arr, params[:timesheet][:date_from], params[:timesheet][:date
             <%= toggle_issue_arrows(elem) %>
          <% end %>
             <%= h elem -%>
-      (<%= h number_with_precision(get_hours_per_day(elem, @requested_user), :Precision => @precision ) %> hours)</h3>
+      (<%= h number_with_precision(get_hours_per_day(elem, @requested_user), :precision => @precision ) %> hours)</h3>
   
 <%= render :partial => 'timesheet_group', :locals => {:entry => elem ,
   :time_entries => @timesheet.time_entries} %>
 
  <% 
-end
-end
+end #each
+end #if
 %>
 
 <%end # form_tag
@@ -51,6 +53,7 @@ end
 
 <% content_for(:header_tags) do %>
 <%= javascript_include_tag 'context_menu' %>
+
 <%= stylesheet_link_tag 'context_menu' %>
 
 <style type="text/css">
@@ -58,10 +61,11 @@ end
 div#timesheet-form p { padding:0px 10px; float:left; }
 
 </style>
-<%= call_hook(:plugin_timesheet_view_timesheets_report_header_tags, { :timesheet => @timesheet }) %>
+<%# TODO: Typo on hook %>
+<%= call_hook(:plugin_personal_timesheet_view_personal_timesheets_report_header_tags, { :timesheet => @timesheet }) %>
 <% end %>
-
 <div id="context-menu" style="display: none;"></div>
 <%= javascript_tag "new ContextMenu('#{url_for(:controller => 'personal_timesheet', :action => 'context_menu')}')" %>
-
-<%= call_hook(:plugin_timesheet_view_timesheets_report_bottom, { :timesheet => @timesheet }) %>
+<%# TODO: Typo on hook %>
+<%= call_hook(:plugin_personal_timesheet_view_personal_timesheets_report_bottom, { :timesheet => @timesheet }) %>
+<%= call_hook(:plugin_personal_timesheet_views_personal_timesheets_report_bottom, { :timesheet => @timesheet }) %>

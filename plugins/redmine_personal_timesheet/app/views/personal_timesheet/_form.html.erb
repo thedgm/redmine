@@ -5,10 +5,10 @@
 
 <p>
   <label for="timesheet_date_from"><%= l(:timesheet_date_from_label)%>:</label><br />
-  <%= f.text_field "date_from", :size => 10, :value => @from %><%= calendar_for('timesheet_date_from') %><br /><br />
+  <%= f.text_field "date_from", :size => 10 %><%= calendar_for('timesheet_date_from') %><br /><br />
 
   <label for="timesheet_date_to"><%= l(:timesheet_date_to_label)%>:</label><br />
-  <%= f.text_field "date_to", :size => 10, :value => @to %><%= calendar_for('timesheet_date_to') %><br /><br />
+  <%= f.text_field "date_to", :size => 10 %><%= calendar_for('timesheet_date_to') %><br /><br />
 
   
 </p>
@@ -16,7 +16,7 @@
 <p>
   <label for="timesheet[projects][]"><%= l(:timesheet_project_label)%>:</label><br />
   <label>All</label><%= link_to image_tag('toggle_check.png'), {},
-  :onclick => 'selectAll2("timesheet[projects][]", "selected"); return false;',
+  :onclick => 'selectAll2("timesheet_projects_", "selected"); return false;',
   :title => "#{l(:button_check_all)}", :class => 'toggle-all' %><br/>
   <%= select_tag 'timesheet[projects][]',
     options_from_collection_for_select(@timesheet.allowed_projects, :id, :name,
@@ -29,7 +29,7 @@
 <p>
   <label for="timesheet[activities][]"><%= l(:timesheet_activities_label)%>:</label><br />
   <label>All</label><%= link_to image_tag('toggle_check.png'), {},
-  :onclick => 'selectAll2("timesheet[activities][]", "selected"); return false;',
+  :onclick => 'selectAll2("timesheet_activities_", "selected"); return false;',
   :title => "#{l(:button_check_all)}", :class => 'toggle-all' %><br/>
   <%= select_tag 'timesheet[activities][]',
     options_from_collection_for_select(@activities, :id, :name, @timesheet.activities),
