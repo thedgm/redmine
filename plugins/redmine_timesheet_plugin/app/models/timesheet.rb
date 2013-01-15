@@ -326,7 +326,7 @@ class Timesheet
   end
   
   def fetch_time_entries_by_user
-    Array(self.users).each do |user_id|
+    self.users.each do |user_id|
       logs = []
       if User.current.admin?
         # Administrators can see all time entries
