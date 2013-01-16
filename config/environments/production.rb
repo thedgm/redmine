@@ -18,8 +18,26 @@ RedmineApp::Application.configure do
 
   # Full error reports are disabled and caching is turned on
   config.action_controller.perform_caching = true
+#  config.cache_store = :dalli_store
+	require 'action_dispatch/middleware/session/dalli_store'
+	Rails.application.config.session_store :dalli_store 		\
+		, :memcache_server => ['localhost', '127.0.0.1'] 	\
+		, :namespace => 'sessions'				\
+		, :key => '_foundation_session'				\
+		, :expire_after => 20.minutes				\
+		, :compress => true					\
+		, :compressor => Dalli::GzipCompressor			\
+		, :keepalive => true					\
+		, :expires_in => 5.minutes				
+  #config.cache_store = :dalli_store, 'localhost',
+  #{ :namespace => "redmine_pro", :expires_in => 3600, :compress => true }
+  
 # Memcached
-  config.cache_store = :mem_cache_store, "10.3.8.5:11211"
+	#config.cache_store = :mem_cache_store, '127.0.0.1:11211', {:namespace => "production"}
+	#config.cache_store = :mem_cache_store, "127.0.0.1:11211", "localhost:11211", "10.3.8.5:11211"
+
+#	require 'memcached'
+#	config.action_controller.cache_store =  :mem_cache_store, Memcached::Rails.new("localhost:11211")
 #  config.cache_store = :mem_cache_store, Memcached::Rails.new("localhost:11211")
 
   # Enable serving of images, stylesheets, and javascripts from an asset server
