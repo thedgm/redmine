@@ -12,6 +12,7 @@ class TimesheetController < ApplicationController
   helper :timelog
 
   SessionKey = 'timesheet_filter'
+
   accept_api_auth :report
        
 #  verify :method => :delete, :only => :reset, :render => {:nothing => true, :status => :method_not_allowed }
@@ -89,21 +90,19 @@ class TimesheetController < ApplicationController
 
 if params[:as_xml]
     if User.current.admin?
-	render :xml => {:error => "Timesheet API restriction."}.to_xml
+	render :xml => { :status => 406, :error => "Timesheet API restriction." }.to_xml, :status => 406
     else
-	render :xml => res.to_xml( :skip_types => true, :dasherize => true, :skip_instruct => true )
-	#send_data @timesheet.time_entries.to_xml( :root => 'report', :skip_types => true, :dasherize => false, :skip_instruct => true ), :filename => 'timesheet.xml', :type => "application/xml" 
+	render :xml => res.to_xml( :skip_types => true, :dasherize => true, :skip_instruct => true )if request.post?
     end
 elsif params[:as_json]
-    if User.current.admin?
-	render :json => {:error => "Timesheet API restriction."}.to_json
+    if User.current.admin? 
+	render :json => { :status => 406, :error => "Timesheet API restriction." }.to_json, :status => 406
     else
-	#render :json => @timesheet.time_entries.to_json( )
-	render :json => res.to_json( )
+	render :json => res.to_json if request.post?
     end
 else
         respond_to do |format|
-          format.html { render :action => 'details', :layout => false if request.xhr? }
+          format.html
           format.csv  { send_data @timesheet.to_csv, :filename => 'timesheet.csv', :type => "text/csv" }
         end
 end
