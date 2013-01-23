@@ -1,0 +1,4 @@
+Allow from all
+php_flag display_errors on
+#php_value error_reporting E_ALL
+#php_value error_reporting 2047

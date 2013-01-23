@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.2.10'
-gem "jquery-rails", "~> 2.0.2"
+gem 'rails', '3.2.11'
+gem "jquery-rails", "~> 2.1.4"
 gem "i18n", "~> 0.6.0"
 gem "coderay", "~> 1.0.6"
 gem "fastercsv", "~> 1.5.0", :platforms => [:mri_18, :mingw_18, :jruby]
@@ -34,11 +34,11 @@ end
 # Database gems
 platforms :mri, :mingw do
   group :postgresql do
-    gem "pg", ">= 0.11.0"
+#    gem "pg", ">= 0.11.0"
   end
 
   group :sqlite do
-    gem "sqlite3"
+#    gem "sqlite3"
   end
 end
 

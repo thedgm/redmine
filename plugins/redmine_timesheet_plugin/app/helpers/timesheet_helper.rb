@@ -21,7 +21,33 @@ module TimesheetHelper
             :method => 'post',
             :class => 'icon icon-timesheet')
   end
-  
+
+  def link_to_xml_export(timesheet)
+    link_to('XML',
+	{
+	  :controller => 'timesheet',
+	  :action => 'report',
+	  :format => 'html',
+	  :timesheet => timesheet.to_param,
+	  :as_xml => true
+	},
+	:method => 'post',
+	:class => 'icon icon-timesheet')
+  end
+
+  def link_to_json_export(timesheet)
+    link_to('JSON',
+        {
+          :controller => 'timesheet',
+          :action => 'report',
+          :format => 'html',
+          :timesheet => timesheet.to_param,
+          :as_json => true
+        },
+        :method => 'post',
+        :class => 'icon icon-timesheet')
+  end
+
   def toggle_issue_arrows(issue_id)
     js = "toggleTimeEntries('#{issue_id}'); return false;"
     
