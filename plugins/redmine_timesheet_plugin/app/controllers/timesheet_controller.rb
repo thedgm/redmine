@@ -1,6 +1,5 @@
 class TimesheetController < ApplicationController
   unloadable
-
   layout 'base'
   before_filter :get_list_size
   before_filter :get_precision
@@ -14,6 +13,8 @@ class TimesheetController < ApplicationController
 
   SessionKey = 'timesheet_filter'
 
+  accept_api_auth :report
+       
 #  verify :method => :delete, :only => :reset, :render => {:nothing => true, :status => :method_not_allowed }
 
   def index
@@ -22,7 +23,6 @@ class TimesheetController < ApplicationController
       @timesheet ||= Timesheet.new
     end
     @timesheet.allowed_projects = allowed_projects
-
     if @timesheet.allowed_projects.empty?
       render :action => 'no_projects'
       return
@@ -36,9 +36,9 @@ class TimesheetController < ApplicationController
       redirect_to :action => 'index'
       return
     end
-    
+
     @timesheet.allowed_projects = allowed_projects
-    
+
     if @timesheet.allowed_projects.empty?
       render :action => 'no_projects'
       return
@@ -83,10 +83,30 @@ class TimesheetController < ApplicationController
     
     @grand_total = @total.collect{|k,v| v}.inject{|sum,n| sum + n}
 
-    respond_to do |format|
-      format.html { render :action => 'details', :layout => false if request.xhr? }
-      format.csv  { send_data @timesheet.to_csv, :filename => 'timesheet.csv', :type => "text/csv" }
+	res = []
+	@timesheet.time_entries.each do |v|
+	    res << { :project => {:name => v[0] } , :logs => v[1][:logs] }
+	end
+
+if params[:as_xml]
+    if User.current.admin?
+	render :xml => { :status => 406, :error => "Timesheet API restriction." }.to_xml, :status => 406
+    else
+	render :xml => res.to_xml( :skip_types => true, :dasherize => true, :skip_instruct => true )if request.post?
     end
+elsif params[:as_json]
+    if User.current.admin? 
+	render :json => { :status => 406, :error => "Timesheet API restriction." }.to_json, :status => 406
+    else
+	render :json => res.to_json if request.post?
+    end
+else
+        respond_to do |format|
+          format.html
+          format.csv  { send_data @timesheet.to_csv, :filename => 'timesheet.csv', :type => "text/csv" }
+        end
+end
+
   end
   
   def context_menu
@@ -161,5 +181,9 @@ class TimesheetController < ApplicationController
       session[SessionKey]['date_to'] = timesheet.date_to
     end
   end
-  
+
+    def to_xml(options={})
+      options.merge!()
+      super(options)
+    end
 end

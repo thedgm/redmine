@@ -229,7 +229,11 @@ class FormProjects extends DysplayComponent {
 		$query = 
 			"SELECT `id`, `name`
 			FROM `enumerations`
+<<<<<<< HEAD
 			WHERE `opt` = 'ACTI'
+=======
+			WHERE `active`
+>>>>>>> release/0.0.1.1
 			ORDER BY `position`";
 		
 		$rdr = BASIC_SQL::init()->read_exec($query);
@@ -312,4 +316,8 @@ class FormProjects extends DysplayComponent {
 		return $all_data;
 		
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> release/0.0.1.1

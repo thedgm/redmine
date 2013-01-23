@@ -176,6 +176,7 @@ RedmineApp::Application.routes.draw do
     resources :relations, :shallow => true, :controller => 'issue_relations', :only => [:index, :show, :create, :destroy]
   end
   match '/issues', :controller => 'issues', :action => 'destroy', :via => :delete
+  get '/issues/show/:id', :to => 'issues#show'
 
   resources :queries, :except => [:show]
 

@@ -1,5 +1,9 @@
 <?php
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> release/0.0.1.1
 if (!empty($_GET['type'])) {
     	
 //	$db_host = 'localhost';
@@ -8,10 +12,17 @@ if (!empty($_GET['type'])) {
 //	$db_name = 'redmine';
 	
 	//server
+<<<<<<< HEAD
 	$db_host = 'support.sbnd.net';
 	$db_user = 'redminetestlubo';
 	$db_pass = '123';
 	$db_name = 'redminetestlubo';
+=======
+	$db_host = 'localhost';
+	$db_user = 'redmine_u';
+	$db_pass = 'redmine_p';
+	$db_name = 'redmine';
+>>>>>>> release/0.0.1.1
 
 	
 	$connection = mysql_connect($db_host, $db_user, $db_pass);
@@ -71,22 +82,63 @@ function getSBNDUsers() {
 	$query = sprintf("SELECT id, login, firstname, lastname, mail
 							FROM users
 							WHERE mail LIKE '%%@sbnd.net%%' AND id != 1 AND status!=3");
+<<<<<<< HEAD
 
 	$results = mysql_query($query);
+=======
+	
+	
+	$query = sprintf("SELECT 
+					`projects`.`id` as `project_id`,
+					`projects`.`name` as `project_name`,
+				FROM `projects`, `members`
+				WHERE
+					`projects`.`id` = `members`.`project_id` AND
+					`projects`.`status` = 1 AND
+					`members`.`user_id` = %d", 181);
+	
+	//manager role id = 3
+	
+	$query = "SELECT * FROM member_roles WHERE role_id = 3";
+	
+//	echo $query;
+	
+	$results = mysql_query($query);
+	$data = array('empty');
+>>>>>>> release/0.0.1.1
 	
 	if ($results) {
 		while($row = mysql_fetch_assoc($results)) {
 			
+<<<<<<< HEAD
 			$users[$row['id']] = array(
+=======
+			$data[$row['id']] = $row;
+			
+			/*			
+			$users[$row['id']] = array(
+										'user_id' => $row['id'],
+>>>>>>> release/0.0.1.1
 										'user_login' => $row['login'],
 										'firstname' => $row['firstname'],
 										'lastname' => $row['lastname'],
 										'mail' => $row['mail']
 									);
+<<<<<<< HEAD
+=======
+			*/
+>>>>>>> release/0.0.1.1
 		}
 		
 	}
 	
+<<<<<<< HEAD
+=======
+	echo "<pre>";
+	var_dump($data);
+	die();
+	
+>>>>>>> release/0.0.1.1
 	return $users;
 }
 
@@ -222,34 +274,77 @@ function geteriodDays($startDate, $endDate) {
 		}
 		
 	}
+<<<<<<< HEAD
 	
 	$headers  = 'MIME-Version: 1.0' . "\r\n";
 	$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+=======
+
+	$headers  = 'MIME-Version: 1.0' . "\r\n";
+	$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+	$days_hours_body = '';
+>>>>>>> release/0.0.1.1
 	
 	//check for not correct work days
 	if (!empty($notify_not_correct_day)) {
 		
 		foreach ($notify_not_correct_day as $user_data) {
 			
+<<<<<<< HEAD
 			if (count($user_data) >= 3) {
+=======
+			if (count($user_data) >= 3) { // notify the user
+>>>>>>> release/0.0.1.1
 				
 				$mail_to = $user_data[0]['mail'];
 				$mail_subject = "Непопълнени дни в redmine";
 				$mail_body = "Здравейте {$user_data[0]['user_name']}, <br /> Имате непопълени часове за следните дни: <br />";
 				
 				foreach ($user_data as $day_data) {
+<<<<<<< HEAD
 					$mail_body .= "<p>{$day_data['day']} - {$day_data['hours']} часа</p>";
 				}
 				
 				if ($mail_to == 'lpopivanov@sbnd.net') {
 					mail($mail_to, $mail_subject, $mail_body, $headers);
 				}
+=======
+					$days_hours_body .= "<p>{$day_data['day']} - {$day_data['hours']} часа</p>";
+				}
+				
+				$mail_body .= $days_hours_body;
+				
+				
+				echo "SEND TO $mail_to <br>";
+				echo $mail_body."<br />";
+				echo "<hr>";
+				
+//				if ($mail_to == 'lpopivanov@sbnd.net') {
+//					mail($mail_to, $mail_subject, $mail_body, $headers);
+//				}
+			}
+			
+			if (count($user_data) >=5) { //notify the project owner and the redmine@sbnd.net
+					$mail_subject = "Непопълнени часове и дни за $user_data[0]['user_name']";
+					$mail_body = $user_data[0]['user_name']." има ".count($user_data)." дни с непопълнени часове";
+					$mail_body .= $days_hours_body;
+
+					echo "ADMIN SEND <br />";
+					echo "SEND TO $mail_to <br>";
+					echo $mail_body."<br />";
+					echo "<hr>";
+>>>>>>> release/0.0.1.1
 			}
 			
 		}
 		
 	}
 
+<<<<<<< HEAD
+=======
+	die('DONE');
+	
+>>>>>>> release/0.0.1.1
 	//check for empty all period data
 	if (!empty($notify_empty_for_all_period)) {
 		

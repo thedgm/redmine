@@ -59,7 +59,15 @@
 				
 	<div id="footer">
 	 	Powered by <a href="http://www.sbnd.net/" target="_blank">SBND Technologies</a>
+<<<<<<< HEAD
 	</div>
 </div>
 
 </html>
+=======
+		 | <a href='/'>Redmine SBND</a>
+	</div>
+</div>
+
+</html>
+>>>>>>> release/0.0.1.1
