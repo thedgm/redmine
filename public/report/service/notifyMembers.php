@@ -1,7 +1,7 @@
 <?php
-
-if (!empty($_GET['type'])) {
-    	
+    
+	require_once('class.phpmailer.php');
+	
 //	$db_host = 'localhost';
 //	$db_user = 'root';
 //	$db_pass = '1234';
@@ -43,18 +43,22 @@ function getUsersTimeEntries($cur_date, $end_date) {
 	
 	$users_time_entries = array();
 	
-	$query = sprintf("SELECT tm.user_id, tm.spent_on, SUM(tm.hours) as hours
+	$query = sprintf("SELECT tm.user_id, tm.spent_on, SUM(tm.hours) as hours, tm.project_id
 							FROM time_entries as tm
 							WHERE tm.spent_on BETWEEN '%s' AND '%s'
 							GROUP BY tm.user_id, tm.spent_on", $end_date, $cur_date);
-	
 	$results = mysql_query($query);
 	
 	$user_time_entries = array();
 	
 	if ($results) {
 		while($row = mysql_fetch_assoc($results)) {
-			$users_time_entries[$row['user_id']][$row['spent_on']] = array('user_id' => $row['user_id'],'date' => $row['spent_on'], 'hours' => $row['hours']);
+			$users_time_entries[$row['user_id']][$row['spent_on']] = array(
+																		'user_id' => $row['user_id'],
+																		'date' => $row['spent_on'], 
+																		'hours' => $row['hours'],
+																		'project_id' => $row['project_id']
+																	);
 			
 		}
 	}
@@ -68,50 +72,46 @@ function getSBNDUsers() {
 	
 	$users = array();
 	
-	$query = sprintf("SELECT id, login, firstname, lastname, mail
-							FROM users
-							WHERE mail LIKE '%%@sbnd.net%%' AND id != 1 AND status!=3");
-	
-	
-	$query = sprintf("SELECT 
-					`projects`.`id` as `project_id`,
-					`projects`.`name` as `project_name`,
-				FROM `projects`, `members`
-				WHERE
-					`projects`.`id` = `members`.`project_id` AND
-					`projects`.`status` = 1 AND
-					`members`.`user_id` = %d", 181);
-	
-	//manager role id = 3
-	
-	$query = "SELECT * FROM member_roles WHERE role_id = 3";
-	
-//	echo $query;
+	$query = sprintf("SELECT u.id, u.login, u.firstname, u.lastname, u.mail, m.project_id, pr.name as project_name
+							FROM users as u
+							LEFT JOIN `members` as m 
+							ON m.user_id = u.id
+							INNER JOIN projects as pr
+							ON pr.id = m.project_id AND pr.status = 1
+							WHERE u.mail LIKE '%%@sbnd.net' AND u.id != 1 AND u.status=1");
 	
 	$results = mysql_query($query);
-	$data = array('empty');
 	
 	if ($results) {
 		while($row = mysql_fetch_assoc($results)) {
 			
-			$data[$row['id']] = $row;
 			
-			/*			
-			$users[$row['id']] = array(
+			if (isset($users[$row['id']])) {
+				$users[$row['id']]['projects'][] = $row['project_id'];
+//				$users[$row['id']]['projects'][] = array(
+//														'project_id' => $row['project_id'],
+//														'project_name' => $row['project_name']
+//													);
+			} else {
+				$users[$row['id']] = array(
 										'user_id' => $row['id'],
 										'user_login' => $row['login'],
 										'firstname' => $row['firstname'],
 										'lastname' => $row['lastname'],
-										'mail' => $row['mail']
+										'mail' => $row['mail'],
+										'projects' => array($row['project_id'])
+//										'projects' => array( 0 => array(
+//																'project_id' => $row['project_id'],
+//																'project_name' => $row['project_name']
+//															)
+//														)
 									);
-			*/
+													
+			}
+			
 		}
 		
 	}
-	
-	echo "<pre>";
-	var_dump($data);
-	die();
 	
 	return $users;
 }
@@ -136,12 +136,12 @@ function mergeUserTimes($users, $users_times) {
 function geteriodDays($startDate, $endDate) {
      
 	$day = 86400; // Day in seconds
-	     
+	
 	$sTime = strtotime($startDate); // Start as time
 	$eTime = strtotime($endDate); // End as time
-	$numDays = round(($eTime - $sTime) / $day) + 1;	     
+	$numDays = round(($eTime - $sTime) / $day);	     
 	$days = array();
-	
+
 	for ($d = 0; $d <= $numDays; $d++) {
 	    	
 		$day_timestamp = $sTime + ($d * $day);
@@ -155,20 +155,72 @@ function geteriodDays($startDate, $endDate) {
 	return $days;
 }
 
-
-	if ($_GET['type'] == 'daily') {
-		$type = 1;		
-	} else if ($_GET['type'] == '5days') {
-		$type = 2;
-	} else {
-		die();
+function getManagers() {
+	
+	$managers = array();
+	
+	$query = "SELECT m.project_id, u.id as user_id, u.login, u.firstname, u.lastname, u.mail, pr.name as project_name, mr.role_id
+				FROM members AS m
+				INNER JOIN users AS u 
+				ON u.id = m.user_id AND u.mail LIKE '%%@sbnd.net' AND u.id != 1 AND u.status=1
+				INNER JOIN member_roles AS mr 
+				ON mr.member_id = m.id AND mr.role_id=3
+				INNER JOIN projects as pr
+				ON pr.id = m.project_id AND pr.status = 1";
+	
+	$results = mysql_query($query);
+	
+	if ($results) {
+		while($row = mysql_fetch_assoc($results)) {
+			
+			if (!empty($row['project_id'])) {
+				$managers[$row['project_id']][] = array(
+//										'manager_id' => $row['user_id'],
+//										'manager_login' => $row['login'],
+										'manager_firstname' => $row['firstname'],
+										'manager_lastname' => $row['lastname'],
+										'manager_mail' => $row['mail'],
+//										'project_id' => $row['project_id'],
+//										'role_id' => $row['role_id'],
+//										'project_name' => $row['project_name']
+									);
+			}
+			
+		}
 	}
 	
+	return $managers;
+}
+
+function setManagers($user_projects, $managers, $cur_user) {
+	
+	$project_managers_mails = array();
+	
+	if (!empty($user_projects) && !empty($managers)) {
+		foreach ($user_projects as $project) {
+			
+			if (isset($managers[$project])) {
+				foreach ($managers[$project] as $manager) {
+					if (!in_array($manager['manager_mail'], $project_managers_mails) && $manager['manager_mail'] != $cur_user) {
+						array_push($project_managers_mails, $manager['manager_mail']);
+					}
+				}
+			}
+			
+		}
+	}
+	
+	return $project_managers_mails;
+}
+
+
 	$holidaysData = getOfficialHolidaysData($cur_date, $end_date);
 	$users_time_entries = getUsersTimeEntries($cur_date, $end_date);
 	$sbnd_users = getSBNDUsers();
+	$managers = getManagers();
 	
 	$period_days = geteriodDays($end_date, $cur_date);
+	//add times
 	$users_full_data = mergeUserTimes($sbnd_users, $users_time_entries);
 	
 	//empty or less than 8 hours for day
@@ -218,7 +270,8 @@ function geteriodDays($startDate, $endDate) {
 								'user_name' => $u_data["user_info"]['firstname']." ".$u_data["user_info"]['lastname'],
 								'mail' => $u_data["user_info"]['mail'],
 								'day' => $p_day,
-								'hours' => $u_data['user_time'][$p_day]['hours']
+								'hours' => $u_data['user_time'][$p_day]['hours'],
+								'projects' => $u_data['user_info']['projects']
 							);
 						}
 						
@@ -231,7 +284,8 @@ function geteriodDays($startDate, $endDate) {
 								'user_name' => $u_data["user_info"]['firstname']." ".$u_data["user_info"]['lastname'],
 								'mail' => $u_data["user_info"]['mail'],
 								'day' => $p_day,
-								'hours' => 0
+								'hours' => 0,
+								'projects' => $u_data['user_info']['projects']
 							);
 														
 						}
@@ -241,7 +295,8 @@ function geteriodDays($startDate, $endDate) {
 			} else { // else the user has no any time -> notify him
 				$notify_empty_for_all_period[] = array(
 								'user_name' => $u_data["user_info"]['firstname']." ".$u_data["user_info"]['lastname'],
-								'mail' => $u_data["user_info"]['mail']
+								'mail' => $u_data["user_info"]['mail'],
+								'projects' => $u_data['user_info']['projects']
 							);
 			}
 			
@@ -249,12 +304,24 @@ function geteriodDays($startDate, $endDate) {
 		
 	}
 
-	$headers  = 'MIME-Version: 1.0' . "\r\n";
-	$headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
 	$days_hours_body = '';
+
+	$mail = new PHPMailer();
+	$mail->mailer = "smtp";
+	$mail->From = 'redmine_test@sbnd.net';
+	$mail->FromName = 'REDMINE TEST';
+	$mail->Host = "smtp.sbnd.net";
+	$mail->SMTPDebug  = false;
+	$mail->CharSet = 'UTF-8';
+	
+	$mail->IsHTML(true);
+	$mail->IsSMTP();
+	
 	
 	//check for not correct work days
 	if (!empty($notify_not_correct_day)) {
+		
+		echo "NOT CORRECT DAYS <br />";
 		
 		foreach ($notify_not_correct_day as $user_data) {
 			
@@ -263,6 +330,7 @@ function geteriodDays($startDate, $endDate) {
 				$mail_to = $user_data[0]['mail'];
 				$mail_subject = "Непопълнени дни в redmine";
 				$mail_body = "Здравейте {$user_data[0]['user_name']}, <br /> Имате непопълени часове за следните дни: <br />";
+				$days_hours_body = '';
 				
 				foreach ($user_data as $day_data) {
 					$days_hours_body .= "<p>{$day_data['day']} - {$day_data['hours']} часа</p>";
@@ -270,35 +338,77 @@ function geteriodDays($startDate, $endDate) {
 				
 				$mail_body .= $days_hours_body;
 				
+				$project_managers_mails = setManagers($user_data[0]['projects'], $managers, $mail_to);
 				
-				echo "SEND TO $mail_to <br>";
-				echo $mail_body."<br />";
-				echo "<hr>";
+					$mail->Subject = $mail_subject;
+					$mail->MsgHTML($mail_body);
+					$mail->AddAddress($mail_to, $user_data[0]['user_name']);
+					
+					
+					/*
+					 * Uncomment on production
+					if(!$mail->Send()) {
+					  echo "Mailer Error: " . $mail->ErrorInfo . "<br />";
+					  die();
+					}
+					*/
+					
+					echo "<hr>";
+					echo "MAIL TO: ".$mail_to."<br />";
+					echo "MAIL SUBJECT: ".$mail_subject."<br />";
+					echo "MAIL BODY: ".$mail_body."<br />";
 				
-//				if ($mail_to == 'lpopivanov@sbnd.net') {
-//					mail($mail_to, $mail_subject, $mail_body, $headers);
-//				}
 			}
 			
-			if (count($user_data) >=5) { //notify the project owner and the redmine@sbnd.net
-					$mail_subject = "Непопълнени часове и дни за $user_data[0]['user_name']";
-					$mail_body = $user_data[0]['user_name']." има ".count($user_data)." дни с непопълнени часове";
-					$mail_body .= $days_hours_body;
-
-					echo "ADMIN SEND <br />";
-					echo "SEND TO $mail_to <br>";
-					echo $mail_body."<br />";
-					echo "<hr>";
+			
+			if (count($user_data) >=5 && !empty($project_managers_mails)) { //notify the project owner and the redmine@sbnd.net
+				
+				$mail_subject = "Непопълнени часове и дни за ".$user_data[0]['user_name'];
+				$mail_body = $user_data[0]['user_name']." има ".count($user_data)." дни с непопълнени часове";
+				$mail_body .= $days_hours_body;
+				
+				$mail->Subject = $mail_subject;
+				$mail->MsgHTML($mail_body);
+					
+				$mail->AddAddress('redmine@sbnd.net', $user_data[0]['user_name']);
+				
+				$managers_mails = '';
+				
+				foreach ($project_managers_mails as $k=>$manager_mail) {
+//					$manager_mail = 'popivanov.lubomir@gmail.com';
+					$mail->AddBCC($manager_mail);
+					$managers_mails .= " {$manager_mail} ";
+				}
+				
+				/*
+				 * Uncomment on production
+				if(!$mail->Send()) {
+					echo "Mailer Error: " . $mail->ErrorInfo . "<br />";
+					die();
+				}
+				*/
+					
+				
+				echo "---------------------------------------------- <br />";
+				echo "MAIL TO MANAGERS FOR USER: ".$user_data[0]['user_name']."<br />";
+				echo "MAIL TO: redmine@sbnd.net <br />";
+				echo "MAIL TO MANAGERS: $managers_mails <br />";
+				echo "MAIL SUBJECT: ".$mail_subject."<br />";
+				echo "MAIL BODY: ".$mail_body."<br />";
+					
 			}
 			
 		}
 		
 	}
-
-	die('DONE');
+	 
+	
 	
 	//check for empty all period data
 	if (!empty($notify_empty_for_all_period)) {
+		
+		echo "============================================= <br />";
+		echo "NOT CORRECT FOR ALL PERIOD (-1 month) <br />";
 		
 		$mail_subject = "Непопълнени дни в redmine";
 		
@@ -307,22 +417,69 @@ function geteriodDays($startDate, $endDate) {
 			$mail_to = $user_data['mail'];
 			$mail_body = "Здравейте {$user_data['user_name']}, <br /> Имате непопълени дни за периода {$end_date} - {$cur_date} <br />";
 			
-			if ($mail_to == 'boyko@sbnd.net') {
+			$mail->Subject = $mail_subject;
+			$mail->MsgHTML($mail_body);
+			
+			$mail->AddAddress($mail_to, $user_data['user_name']);
+			
+			echo "<hr>";
+			echo "MAIL TO: ".$mail_to."<br />";
+			echo "MAIL SUBJECT: ".$mail_subject."<br />";
+			echo "MAIL BODY: ".$mail_body."<br />";
+			
+			/**
+			 * 
+			 * Uncomment on production
+			if(!$mail->Send()) {
+			  echo "Mailer Error: " . $mail->ErrorInfo . "<br />";
+			  die();
+			}
+			*/
+			
+			$mail_subject = "Непопълнени часове и дни за периода {$end_date} - {$cur_date}";
+			$mail_body = $user_data['user_name']." има непопълнени часове и дни за периода {$end_date} - {$cur_date}";
 				
-				echo "<pre>";
-				var_dump($mail_to, $mail_body);
+			$mail->Subject = $mail_subject;
+			$mail->MsgHTML($mail_body);
+				
+			$mail->AddAddress('redmine@sbnd.net', $user_data['user_name']);
+			
+			
+			/*
+			 * Uncomment of produktion
+			 
+			if(!$mail->Send()) {
+				echo "Mailer Error: " . $mail->ErrorInfo . "<br />";
 				die();
+			}
+			*/
 				
-				mail($mail_to, $mail_subject, $mail_body, $headers);				
+			$project_managers_mails = setManagers($user_data['projects'], $managers, $mail_to);
+
+			if (!empty($project_managers_mails)) {
+				
+				
+				$managers_mails = '';
+				
+				foreach ($project_managers_mails as $k=>$manager_mail) {
+						
+//					$manager_mail = 'popivanov.lubomir@gmail.com';
+					$mail->AddBCC($manager_mail);
+					$managers_mails .= " {$manager_mail} ";
+				}
+					
 			}
 			
+			echo "---------------------------------------------- <br />";
+			echo "MAIL TO MANAGERS FOR USER: ".$user_data['user_name']."<br />";
+			echo "MAIL TO: redmine@sbnd.net <br />";
+			echo "MAIL TO MANAGERS: $managers_mails <br />";
+			echo "MAIL SUBJECT: ".$mail_subject."<br />";
+			echo "MAIL BODY: ".$mail_body."<br />";
+			
+				
+				
 		}
 	}
 	
-	echo "<pre>";
-	var_dump($notify_not_correct_day);
-	die();
-	
 	mysql_close($connection);
-	
-}
