@@ -14,7 +14,14 @@ class TimesheetController < ApplicationController
   SessionKey = 'timesheet_filter'
 
   accept_api_auth :report
-       
+
+  skip_before_filter :verify_authenticity_token, :only => [ :report ]
+  before_filter :semi_verify_authenticity_token, :only => [ :report ]
+
+  def semi_verify_authenticity_token
+    verify_authenticity_token unless request.xhr?
+  end
+
 #  verify :method => :delete, :only => :reset, :render => {:nothing => true, :status => :method_not_allowed }
 
   def index
@@ -92,17 +99,23 @@ if params[:as_xml]
     if User.current.admin?
 	render :xml => { :status => 406, :error => "Timesheet API restriction." }.to_xml, :status => 406
     else
-	render :xml => res.to_xml( :skip_types => true, :dasherize => true, :skip_instruct => true )if request.post?
+#	render :xml => res.to_xml( :skip_types => true, :dasherize => true, :skip_instruct => true ), :layout => false
+	render :xml => res.to_xml( :skip_types => true, :dasherize => true, :skip_instruct => true ), :layout => false if request.post?
+	render :xml => { :status => 406, :error => "Timesheet API restriction." }.to_xml, :status => 406 if request.get?
     end
+    return
 elsif params[:as_json]
     if User.current.admin? 
 	render :json => { :status => 406, :error => "Timesheet API restriction." }.to_json, :status => 406
     else
-	render :json => res.to_json if request.post?
+#	render :json => res.to_json(), :layout => false
+	render :json => res.to_json(), :layout => false if request.post?
+	render :json => { :status => 406, :error => "Timesheet API restriction." }.to_json, :status => 406 if request.get?
     end
+    return
 else
         respond_to do |format|
-          format.html
+          format.html { render :action => 'details', :layout => false if request.xhr? }
           format.csv  { send_data @timesheet.to_csv, :filename => 'timesheet.csv', :type => "text/csv" }
         end
 end
